@@ -386,6 +386,148 @@ function initMap() {
 
   renderSpots();
 }
+// ─── CATCH LOGGER ────────────────────────────────────────
+function initCatchLogger() {
+  let catches = JSON.parse(localStorage.getItem('gulfStrikeCatches') || '[]');
+
+  function getFishEmoji(species) {
+    const s = species.toLowerCase();
+    if (s.includes('grouper')) return '🐟';
+    if (s.includes('snook')) return '🎣';
+    if (s.includes('redfish') || s.includes('red drum')) return '🐡';
+    if (s.includes('snapper')) return '🐠';
+    if (s.includes('flounder')) return '🦈';
+    if (s.includes('tarpon')) return '🏆';
+    if (s.includes('mahi')) return '🐬';
+    if (s.includes('cobia')) return '🦈';
+    return '🐟';
+  }
+
+  function getPersonalRecord(species, weight) {
+    const speciesCatches = catches.filter(c => 
+      c.species.toLowerCase() === species.toLowerCase() && parseFloat(c.weight) > 0
+    );
+    if (speciesCatches.length === 0) return false;
+    const maxWeight = Math.max(...speciesCatches.map(c => parseFloat(c.weight) || 0));
+    return parseFloat(weight) >= maxWeight;
+  }
+
+  function renderCatches() {
+    const list = document.getElementById('catch-list');
+    
+    if (catches.length === 0) {
+      list.innerHTML = `
+        <div class="empty-catches">
+          🎣 No catches logged yet!<br>
+          <span style="font-size:0.8rem">Log your first catch above</span>
+        </div>
+      `;
+      return;
+    }
+
+    const totalCatches = catches.length;
+    const totalWeight = catches.reduce((a, b) => a + (parseFloat(b.weight) || 0), 0).toFixed(1);
+    const species = [...new Set(catches.map(c => c.species))].length;
+    const biggestCatch = catches.reduce((max, c) => 
+      (parseFloat(c.weight) || 0) > (parseFloat(max.weight) || 0) ? c : max, catches[0]);
+
+    list.innerHTML = `
+      <div class="catch-stats-bar">
+        <div class="catch-stat-item">
+          <div class="catch-stat-number">${totalCatches}</div>
+          <div class="catch-stat-label">Total Catches</div>
+        </div>
+        <div class="catch-stat-item">
+          <div class="catch-stat-number">${totalWeight}</div>
+          <div class="catch-stat-label">Total lbs</div>
+        </div>
+        <div class="catch-stat-item">
+          <div class="catch-stat-number">${species}</div>
+          <div class="catch-stat-label">Species</div>
+        </div>
+        <div class="catch-stat-item">
+          <div class="catch-stat-number">${biggestCatch.weight || '?'}</div>
+          <div class="catch-stat-label">Biggest (lbs)</div>
+        </div>
+      </div>
+      ${catches.slice().reverse().map((c, i) => {
+        const realIndex = catches.length - 1 - i;
+        const isRecord = c.weight && getPersonalRecord(c.species, c.weight);
+        return `
+          <div class="catch-entry">
+            <span class="catch-entry-emoji">${getFishEmoji(c.species)}</span>
+            <div class="catch-entry-info">
+              <div class="catch-entry-species">
+                ${c.species}
+                ${isRecord ? '<span class="catch-record-badge">🏆 Personal Record!</span>' : ''}
+              </div>
+              <div class="catch-entry-details">
+                ${c.location ? `📍 ${c.location}` : ''}
+                ${c.bait ? ` · 🎣 ${c.bait}` : ''}
+                ${c.depth ? ` · 📏 ${c.depth}ft` : ''}
+                ${c.notes ? `<br>📝 ${c.notes}` : ''}
+              </div>
+            </div>
+            <div class="catch-entry-stats">
+              <div class="catch-entry-weight">${c.weight ? c.weight + ' lbs' : '?'}</div>
+              <div class="catch-entry-date">${c.length ? c.length + '"' : ''}</div>
+              <div class="catch-entry-date">${c.date}</div>
+            </div>
+            <button class="catch-delete-btn" onclick="deleteCatch(${realIndex})">Remove</button>
+          </div>
+        `;
+      }).join('')}
+    `;
+  }
+
+  window.deleteCatch = function(i) {
+    catches.splice(i, 1);
+    localStorage.setItem('gulfStrikeCatches', JSON.stringify(catches));
+    renderCatches();
+  };
+
+  document.getElementById('log-catch-btn').addEventListener('click', () => {
+    const species = document.getElementById('log-species').value.trim();
+    if (!species) {
+      alert('Please enter a species name!');
+      return;
+    }
+
+    const now = new Date();
+    const catch_ = {
+      species,
+      weight: document.getElementById('log-weight').value,
+      length: document.getElementById('log-length').value,
+      bait: document.getElementById('log-bait').value,
+      location: document.getElementById('log-location').value,
+      depth: document.getElementById('log-depth').value,
+      notes: document.getElementById('log-notes').value,
+      date: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+    };
+
+    catches.push(catch_);
+    localStorage.setItem('gulfStrikeCatches', JSON.stringify(catches));
+
+    // Clear form
+    ['log-species','log-weight','log-length','log-bait','log-location','log-depth','log-notes'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+
+    renderCatches();
+
+    // Show success message
+    const btn = document.getElementById('log-catch-btn');
+    btn.textContent = '✅ Catch Logged!';
+    btn.style.background = 'linear-gradient(135deg, #00e676, #00b4d8)';
+    setTimeout(() => {
+      btn.textContent = '🎣 Log This Catch!';
+      btn.style.background = '';
+    }, 2000);
+  });
+
+  renderCatches();
+}
 // ─── AI CATCH IDENTIFIER ─────────────────────────────────
 function initCatchIdentifier() {
   const photoInput = document.getElementById('catch-photo');
@@ -799,4 +941,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initBaitShopFinder();
   loadMigrationData();
   initCatchIdentifier();
+  initCatchLogger();
 });

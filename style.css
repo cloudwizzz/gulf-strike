@@ -1187,3 +1187,211 @@ body::before {
   line-height: 1.6;
   border-left: 3px solid var(--gold);
 }
+/* ─── CATCH LOGGER ─── */
+.catch-log-section {
+  max-width: 1300px;
+  margin: 0 auto 30px;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.catch-log-section h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 3px;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.catch-log-form {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 24px;
+  backdrop-filter: blur(20px);
+  margin-bottom: 20px;
+}
+
+.catch-log-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.catch-log-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.catch-log-field label {
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  color: var(--teal);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.catch-log-field input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(0,180,216,0.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-size: 0.9rem;
+  outline: none;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.2s;
+}
+
+.catch-log-field input:focus {
+  border-color: rgba(0,180,216,0.5);
+}
+
+.catch-log-field input::placeholder {
+  color: var(--text-muted);
+}
+
+#log-catch-btn {
+  background: linear-gradient(135deg, var(--gold), var(--sunset));
+  border: none;
+  border-radius: 14px;
+  padding: 14px 32px;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  margin-top: 16px;
+  transition: opacity 0.2s, transform 0.1s;
+  box-shadow: 0 4px 20px rgba(244,166,32,0.3);
+  width: 100%;
+}
+
+#log-catch-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+#catch-history {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 24px;
+  backdrop-filter: blur(20px);
+}
+
+#catch-history h3 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--teal);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.catch-entry {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  flex-wrap: wrap;
+}
+
+.catch-entry:last-child { border-bottom: none; }
+
+.catch-entry-emoji { font-size: 2rem; }
+
+.catch-entry-info { flex: 1; min-width: 150px; }
+
+.catch-entry-species {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.catch-entry-details {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.catch-entry-stats {
+  text-align: right;
+  min-width: 100px;
+}
+
+.catch-entry-weight {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+
+.catch-entry-date {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.catch-delete-btn {
+  background: rgba(255,82,82,0.1);
+  border: 1px solid rgba(255,82,82,0.3);
+  color: #ff5252;
+  border-radius: 8px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: background 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+
+.catch-delete-btn:hover { background: rgba(255,82,82,0.25); }
+
+.catch-record-badge {
+  background: linear-gradient(135deg, rgba(244,166,32,0.2), rgba(247,127,0,0.2));
+  border: 1px solid rgba(244,166,32,0.4);
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-size: 0.72rem;
+  color: var(--gold);
+  font-weight: 700;
+  margin-left: 8px;
+}
+
+.catch-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.catch-stat-item {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(0,180,216,0.15);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+}
+
+.catch-stat-number {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  color: var(--teal);
+  letter-spacing: 1px;
+}
+
+.catch-stat-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.empty-catches {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}

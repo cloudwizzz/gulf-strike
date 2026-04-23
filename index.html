@@ -89,6 +89,49 @@
     <button id="identify-btn" style="display:none">🤖 Identify My Catch!</button>
     <div id="catch-result"></div>
   </div>
+  <div class="catch-log-section">
+    <h2>🏆 CATCH LOGGER</h2>
+    <p class="map-tip">💡 Log every catch — build your personal fishing history and track your records!</p>
+    
+    <div class="catch-log-form">
+      <div class="catch-log-grid">
+        <div class="catch-log-field">
+          <label>🐟 Species</label>
+          <input type="text" id="log-species" placeholder="e.g. Gag Grouper"/>
+        </div>
+        <div class="catch-log-field">
+          <label>⚖️ Weight (lbs)</label>
+          <input type="number" id="log-weight" placeholder="e.g. 4.5" step="0.1"/>
+        </div>
+        <div class="catch-log-field">
+          <label>📏 Length (inches)</label>
+          <input type="number" id="log-length" placeholder="e.g. 18" step="0.1"/>
+        </div>
+        <div class="catch-log-field">
+          <label>🎣 Bait Used</label>
+          <input type="text" id="log-bait" placeholder="e.g. Live pinfish"/>
+        </div>
+        <div class="catch-log-field">
+          <label>📍 Location</label>
+          <input type="text" id="log-location" placeholder="e.g. Anclote Key"/>
+        </div>
+        <div class="catch-log-field">
+          <label>📏 Depth (ft)</label>
+          <input type="number" id="log-depth" placeholder="e.g. 60"/>
+        </div>
+      </div>
+      <div class="catch-log-field" style="margin-top:12px">
+        <label>📝 Notes</label>
+        <input type="text" id="log-notes" placeholder="Any notes about this catch..."/>
+      </div>
+      <button id="log-catch-btn">🎣 Log This Catch!</button>
+    </div>
+
+    <div id="catch-history">
+      <h3>📋 YOUR CATCH HISTORY</h3>
+      <div id="catch-list"></div>
+    </div>
+  </div>
 <div class="bait-section">
     <h2>🎣 AI BAIT RECOMMENDER</h2>
     <p class="map-tip">💡 Hit the button and get instant bait & rig recommendations based on today's live conditions!</p>
