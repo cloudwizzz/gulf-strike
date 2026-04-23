@@ -229,7 +229,8 @@ app.post('/api/chat', async (req, res) => {
       })
     });
     const data = await response.json();
-    res.json({ reply: data.content[0].text });
+    console.log('Anthropic response:', JSON.stringify(data));
+res.json({ reply: data.content[0].text });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
