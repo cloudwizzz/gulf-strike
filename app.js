@@ -386,6 +386,106 @@ function initMap() {
 
   renderSpots();
 }
+// ─── AI CATCH IDENTIFIER ─────────────────────────────────
+function initCatchIdentifier() {
+  const photoInput = document.getElementById('catch-photo');
+  const preview = document.getElementById('catch-preview');
+  const identifyBtn = document.getElementById('identify-btn');
+  const result = document.getElementById('catch-result');
+  const uploadArea = document.getElementById('catch-upload-area');
+
+  let imageData = null;
+  let mediaType = null;
+
+  photoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    mediaType = file.type || 'image/jpeg';
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const base64 = event.target.result;
+      imageData = base64.split(',')[1];
+
+      preview.src = event.target.result;
+      preview.style.display = 'block';
+      uploadArea.style.borderColor = 'rgba(0,180,216,0.6)';
+      identifyBtn.style.display = 'block';
+      result.style.display = 'none';
+    };
+
+    reader.readAsDataURL(file);
+  });
+
+  identifyBtn.addEventListener('click', async () => {
+    if (!imageData) return;
+
+    identifyBtn.disabled = true;
+    identifyBtn.textContent = '🤖 Analyzing your catch...';
+    result.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/identify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageData, mediaType })
+      });
+
+      const data = await res.json();
+
+      if (data.error) throw new Error(data.error);
+
+      const legalClass = data.legalToKeep === true ? 'legal-yes' : data.legalToKeep === false ? 'legal-no' : 'legal-unknown';
+      const legalIcon = data.legalToKeep === true ? '✅ Legal to Keep' : data.legalToKeep === false ? '❌ Must Release' : '⚠️ Check Regulations';
+
+      result.style.display = 'block';
+      result.innerHTML = `
+        <div class="catch-species">${data.species || 'Unknown Species'}</div>
+        <div class="catch-confidence">🔬 ${data.scientificName || ''} · ${data.confidence || 0}% confidence</div>
+        <div class="legal-badge ${legalClass}">${legalIcon}</div>
+        <div class="catch-grid">
+          <div class="catch-card">
+            <div class="catch-card-label">📏 Est. Length</div>
+            <div class="catch-card-value">${data.estimatedLength || 'Unknown'}</div>
+          </div>
+          <div class="catch-card">
+            <div class="catch-card-label">⚖️ Est. Weight</div>
+            <div class="catch-card-value">${data.estimatedWeight || 'Unknown'}</div>
+          </div>
+          <div class="catch-card">
+            <div class="catch-card-label">📐 Min Size</div>
+            <div class="catch-card-value">${data.minimumSize || 'Unknown'}</div>
+          </div>
+          <div class="catch-card">
+            <div class="catch-card-label">🎣 Bag Limit</div>
+            <div class="catch-card-value">${data.bagLimit || 'Unknown'}</div>
+          </div>
+          <div class="catch-card">
+            <div class="catch-card-label">📅 Season</div>
+            <div class="catch-card-value">${data.season || 'Unknown'}</div>
+          </div>
+          <div class="catch-card">
+            <div class="catch-card-label">⚠️ Regulations</div>
+            <div class="catch-card-value">${data.legalNote || 'Check FWC'}</div>
+          </div>
+        </div>
+        <div class="catch-cooking">
+          🍳 <strong>How to Cook:</strong> ${data.cookingMethod || 'Unknown'}<br><br>
+          😋 <strong>Taste:</strong> ${data.taste || 'Unknown'}<br><br>
+          🎯 <strong>Fun Fact:</strong> ${data.funFact || 'Unknown'}
+        </div>
+      `;
+
+    } catch(e) {
+      result.style.display = 'block';
+      result.innerHTML = '<p style="color:#ff8a65">Could not identify fish. Make sure the photo is clear and try again!</p>';
+    }
+
+    identifyBtn.disabled = false;
+    identifyBtn.textContent = '🤖 Identify My Catch!';
+  });
+}
 // ─── FISH MIGRATION TRACKER ──────────────────────────────
 async function loadMigrationData() {
   try {
@@ -698,4 +798,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initBaitRecommender();
   initBaitShopFinder();
   loadMigrationData();
+  initCatchIdentifier();
 });

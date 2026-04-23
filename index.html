@@ -74,6 +74,21 @@
     </div>
     <div id="baitshop-results"></div>
   </div>
+  <div class="catch-identifier-section">
+    <h2>📸 AI CATCH IDENTIFIER</h2>
+    <p class="map-tip">💡 Take a photo of your catch and AI will identify the species, check if it's legal to keep, and tell you how to cook it!</p>
+    <div class="catch-upload-area" id="catch-upload-area">
+      <input type="file" id="catch-photo" accept="image/*" capture="environment" style="display:none"/>
+      <div class="catch-upload-btn" onclick="document.getElementById('catch-photo').click()">
+        <div class="catch-upload-icon">📸</div>
+        <div class="catch-upload-text">Tap to take a photo or upload</div>
+        <div class="catch-upload-sub">Works with your phone camera!</div>
+      </div>
+      <img id="catch-preview" style="display:none"/>
+    </div>
+    <button id="identify-btn" style="display:none">🤖 Identify My Catch!</button>
+    <div id="catch-result"></div>
+  </div>
 <div class="bait-section">
     <h2>🎣 AI BAIT RECOMMENDER</h2>
     <p class="map-tip">💡 Hit the button and get instant bait & rig recommendations based on today's live conditions!</p>

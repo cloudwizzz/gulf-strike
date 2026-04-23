@@ -1,7 +1,8 @@
 const express = require('express');
 const path = require('path');
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 const PORT = 3000;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
@@ -235,7 +236,65 @@ res.json({ reply: data.content[0].text });
     res.status(500).json({ error: err.message });
   }
 });
+app.post('/api/identify', async (req, res) => {
+  try {
+    const fetch = (await import('node-fetch')).default;
+    const { imageData, mediaType } = req.body;
 
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-5',
+        max_tokens: 1024,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: mediaType || 'image/jpeg',
+                data: imageData
+              }
+            },
+            {
+              type: 'text',
+              text: `You are an expert Florida fishing guide and marine biologist. Analyze this fish photo and respond ONLY with a valid JSON object, no markdown, no backticks:
+{
+  "species": "Common name of the fish",
+  "scientificName": "Scientific name",
+  "confidence": 95,
+  "estimatedLength": "12-15 inches",
+  "estimatedWeight": "1-2 lbs",
+  "legalToKeep": true,
+  "minimumSize": "12 inches in Florida",
+  "bagLimit": "10 per person per day",
+  "season": "Open year round",
+  "legalNote": "Brief note about regulations",
+  "cookingMethod": "Best way to cook this fish",
+  "taste": "Description of flavor",
+  "funFact": "Interesting fact about this species"
+}`
+            }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content[0].text;
+    const clean = text.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(clean);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 app.listen(PORT, () => {
   console.log(`Fishing app running at http://localhost:${PORT}`);
 });
