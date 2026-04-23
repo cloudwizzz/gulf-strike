@@ -5,6 +5,7 @@ app.use(express.json());
 const PORT = 3000;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+
 app.use(express.static(path.join(__dirname)));
 
 app.get('/api/tides', async (req, res) => {
@@ -102,6 +103,110 @@ app.get('/api/sun', async (req, res) => {
   }
 });
 
+app.get('/api/migration', async (req, res) => {
+  try {
+    const fetch = (await import('node-fetch')).default;
+    const buoys = [
+      { id: '42036', name: 'West Tampa/Gulf', lat: 28.50, lng: -84.517 },
+      { id: '42013', name: 'Crystal River', lat: 28.786, lng: -84.467 },
+      { id: 'CDRF1', name: 'Cedar Key', lat: 29.133, lng: -83.033 },
+      { id: 'TPAF1', name: 'Tampa Bay', lat: 27.967, lng: -82.433 },
+      { id: 'VENF1', name: 'Venice', lat: 27.067, lng: -82.450 },
+    ];
+    const temps = await Promise.allSettled(
+      buoys.map(async buoy => {
+        const url = `https://www.ndbc.noaa.gov/data/realtime2/${buoy.id}.txt`;
+        const response = await fetch(url);
+        const text = await response.text();
+        const lines = text.split('\n');
+        const headers = lines[0].replace('#','').trim().split(/\s+/);
+        const dataLine = lines[2].trim().split(/\s+/);
+        const wtmpIndex = headers.indexOf('WTMP');
+        const tempC = dataLine[wtmpIndex];
+        const tempF = tempC === 'MM' ? null : ((parseFloat(tempC) * 9/5) + 32).toFixed(1);
+        return { ...buoy, tempF: parseFloat(tempF) };
+      })
+    );
+    const validTemps = temps
+      .filter(t => t.status === 'fulfilled' && t.value.tempF)
+      .map(t => t.value);
+    const avgTemp = validTemps.reduce((a, b) => a + b.tempF, 0) / validTemps.length;
+    const predictions = {
+      avgTemp: avgTemp.toFixed(1),
+      buoys: validTemps,
+      movements: [
+        {
+          species: 'Gag Grouper', emoji: '🐟',
+          movement: avgTemp < 65 ? 'Moving deeper — 80-120ft. Cold water pushing them off structure.' : avgTemp < 72 ? 'Active on mid-depth structure 60-100ft. Prime conditions!' : 'Shallow structure 40-80ft. Warm water has them fired up!',
+          direction: avgTemp < 68 ? 'deeper' : 'shallow',
+          hotZone: avgTemp < 68 ? 'Offshore reefs 80-120ft' : 'Nearshore ledges 40-80ft'
+        },
+        {
+          species: 'Snook', emoji: '🎣',
+          movement: avgTemp < 60 ? '⚠️ Cold stress — snook inactive, seek warm water discharge areas.' : avgTemp < 68 ? 'Moving to warm water — power plant discharge, deep creeks, canals.' : avgTemp < 80 ? 'Active inshore — bridges, docks, mangrove edges. Prime time!' : 'Early morning & evening bite only. Too warm midday.',
+          direction: avgTemp < 65 ? 'warm refuges' : 'inshore structure',
+          hotZone: avgTemp < 65 ? 'Warm water discharge areas' : 'Mangrove edges & bridges'
+        },
+        {
+          species: 'Redfish', emoji: '🐡',
+          movement: avgTemp < 60 ? 'Schooled up in deeper holes and channels. Slow bite.' : avgTemp < 72 ? 'Moving onto flats during warm afternoons. Great conditions!' : 'On the flats early morning. Seek shade and deeper edges midday.',
+          direction: avgTemp < 65 ? 'deeper channels' : 'shallow flats',
+          hotZone: avgTemp < 65 ? 'Deep grass flats & channels' : 'Shallow grass flats'
+        },
+        {
+          species: 'Mangrove Snapper', emoji: '🐠',
+          movement: avgTemp < 65 ? 'Moving offshore to deeper reefs 40-80ft.' : avgTemp < 75 ? 'Nearshore structure & docks. Very active!' : 'Scattered inshore and nearshore. Night bite excellent.',
+          direction: avgTemp < 65 ? 'offshore' : 'inshore',
+          hotZone: avgTemp < 65 ? 'Nearshore reefs 40-80ft' : 'Docks, bridges & structure'
+        }
+      ]
+    };
+    res.json(predictions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/baitshops', async (req, res) => {
+  try {
+    const fetch = (await import('node-fetch')).default;
+    const { query } = req.query;
+
+    console.log('Bait shop search for:', query);
+    console.log('Google API Key exists:', !!GOOGLE_API_KEY);
+
+    const geoUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query + ' Florida')}&key=${GOOGLE_API_KEY}`;
+    const geoRes = await fetch(geoUrl);
+    const geoData = await geoRes.json();
+
+    console.log('Geo status:', geoData.status);
+
+    if (!geoData.results || geoData.results.length === 0) {
+      return res.json({ shops: [], error: 'Location not found', debug: geoData.status });
+    }
+
+    const { lat, lng } = geoData.results[0].geometry.location;
+    const placesUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=8000&keyword=bait+shop+fishing+tackle&key=${GOOGLE_API_KEY}`;
+    const placesRes = await fetch(placesUrl);
+    const placesData = await placesRes.json();
+
+    const shops = (placesData.results || []).slice(0, 10).map(place => ({
+      name: place.name,
+      address: place.vicinity,
+      rating: place.rating || null,
+      totalRatings: place.user_ratings_total || 0,
+      open: place.opening_hours ? place.opening_hours.open_now : null,
+      lat: place.geometry.location.lat,
+      lng: place.geometry.location.lng,
+      placeId: place.place_id
+    }));
+
+    res.json({ shops, center: { lat, lng } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/chat', async (req, res) => {
   try {
     const fetch = (await import('node-fetch')).default;
@@ -129,136 +234,7 @@ app.post('/api/chat', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-app.get('/api/baitshops', async (req, res) => {
-  try {
-    const fetch = (await import('node-fetch')).default;
-    const { query } = req.query;
 
-    // First geocode the search query to get coordinates
-    const geoUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query + ' Florida')}&key=${GOOGLE_API_KEY}`;
-    const geoRes = await fetch(geoUrl);
-    const geoData = await geoRes.json();
-
-    if (!geoData.results || geoData.results.length === 0) {
-      return res.json({ shops: [], error: 'Location not found' });
-    }
-
-    const { lat, lng } = geoData.results[0].geometry.location;
-
-    // Search for bait shops nearby
-    const placesUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=25000&keyword=bait+shop+fishing+tackle&key=${GOOGLE_API_KEY}`;
-    const placesRes = await fetch(placesUrl);
-    const placesData = await placesRes.json();
-
-    const shops = (placesData.results || []).slice(0, 10).map(place => ({
-      name: place.name,
-      address: place.vicinity,
-      rating: place.rating || null,
-      totalRatings: place.user_ratings_total || 0,
-      open: place.opening_hours ? place.opening_hours.open_now : null,
-      lat: place.geometry.location.lat,
-      lng: place.geometry.location.lng,
-      placeId: place.place_id
-    }));
-
-    res.json({ shops, center: { lat, lng } });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-app.get('/api/migration', async (req, res) => {
-  try {
-    const fetch = (await import('node-fetch')).default;
-
-    // Get water temps from multiple NOAA buoys around Florida Gulf Coast
-    const buoys = [
-      { id: '42036', name: 'West Tampa/Gulf', lat: 28.50, lng: -84.517 },
-      { id: '42013', name: 'Crystal River', lat: 28.786, lng: -84.467 },
-      { id: 'CDRF1', name: 'Cedar Key', lat: 29.133, lng: -83.033 },
-      { id: 'TPAF1', name: 'Tampa Bay', lat: 27.967, lng: -82.433 },
-      { id: 'VENF1', name: 'Venice', lat: 27.067, lng: -82.450 },
-    ];
-
-    const temps = await Promise.allSettled(
-      buoys.map(async buoy => {
-        const url = `https://www.ndbc.noaa.gov/data/realtime2/${buoy.id}.txt`;
-        const response = await fetch(url);
-        const text = await response.text();
-        const lines = text.split('\n');
-        const headers = lines[0].replace('#','').trim().split(/\s+/);
-        const dataLine = lines[2].trim().split(/\s+/);
-        const wtmpIndex = headers.indexOf('WTMP');
-        const tempC = dataLine[wtmpIndex];
-        const tempF = tempC === 'MM' ? null : ((parseFloat(tempC) * 9/5) + 32).toFixed(1);
-        return { ...buoy, tempF: parseFloat(tempF) };
-      })
-    );
-
-    const validTemps = temps
-      .filter(t => t.status === 'fulfilled' && t.value.tempF)
-      .map(t => t.value);
-
-    // Generate fish movement predictions based on temps
-    const avgTemp = validTemps.reduce((a, b) => a + b.tempF, 0) / validTemps.length;
-
-    const predictions = {
-      avgTemp: avgTemp.toFixed(1),
-      buoys: validTemps,
-      movements: [
-        {
-          species: 'Gag Grouper',
-          emoji: '🐟',
-          movement: avgTemp < 65
-            ? 'Moving deeper — 80-120ft. Cold water pushing them off structure.'
-            : avgTemp < 72
-            ? 'Active on mid-depth structure 60-100ft. Prime conditions!'
-            : 'Shallow structure 40-80ft. Warm water has them fired up!',
-          direction: avgTemp < 68 ? 'deeper' : 'shallow',
-          hotZone: avgTemp < 68 ? 'Offshore reefs 80-120ft' : 'Nearshore ledges 40-80ft'
-        },
-        {
-          species: 'Snook',
-          emoji: '🎣',
-          movement: avgTemp < 60
-            ? '⚠️ Cold stress — snook inactive, seek warm water discharge areas.'
-            : avgTemp < 68
-            ? 'Moving to warm water — power plant discharge, deep creeks, canals.'
-            : avgTemp < 80
-            ? 'Active inshore — bridges, docks, mangrove edges. Prime time!'
-            : 'Early morning & evening bite only. Too warm midday.',
-          direction: avgTemp < 65 ? 'warm refuges' : 'inshore structure',
-          hotZone: avgTemp < 65 ? 'Warm water discharge areas' : 'Mangrove edges & bridges'
-        },
-        {
-          species: 'Redfish',
-          emoji: '🐡',
-          movement: avgTemp < 60
-            ? 'Schooled up in deeper holes and channels. Slow bite.'
-            : avgTemp < 72
-            ? 'Moving onto flats during warm afternoons. Great conditions!'
-            : 'On the flats early morning. Seek shade and deeper edges midday.',
-          direction: avgTemp < 65 ? 'deeper channels' : 'shallow flats',
-          hotZone: avgTemp < 65 ? 'Deep grass flats & channels' : 'Shallow grass flats'
-        },
-        {
-          species: 'Mangrove Snapper',
-          emoji: '🐠',
-          movement: avgTemp < 65
-            ? 'Moving offshore to deeper reefs 40-80ft.'
-            : avgTemp < 75
-            ? 'Nearshore structure & docks. Very active!'
-            : 'Scattered inshore and nearshore. Night bite excellent.',
-          direction: avgTemp < 65 ? 'offshore' : 'inshore',
-          hotZone: avgTemp < 65 ? 'Nearshore reefs 40-80ft' : 'Docks, bridges & structure'
-        }
-      ]
-    };
-
-    res.json(predictions);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 app.listen(PORT, () => {
   console.log(`Fishing app running at http://localhost:${PORT}`);
 });
