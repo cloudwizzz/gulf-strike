@@ -3,8 +3,8 @@ const path = require('path');
 const app = express();
 app.use(express.json());
 const PORT = 3000;
-const ANTHROPIC_API_KEY = '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';
-const GOOGLE_API_KEY = 'AIzaSyAAHIB_dN951zFeYMmqn2VR3JM70rAvC8A';
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 app.use(express.static(path.join(__dirname)));
 
 app.get('/api/tides', async (req, res) => {
