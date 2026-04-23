@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>⚡ Gulf Strike</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg"/>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+  <div class="header">
+    <div class="header-bg"></div>
+    <img src="logo.svg" alt="Gulf Strike Logo" style="width:80px;height:80px;margin-bottom:10px;filter:drop-shadow(0 0 20px rgba(0,180,216,0.4))"/>
+    
+    <h1>GULF STRIKE</h1>
+    <p class="header-tagline">Your Smart Fishing Companion</p>
+    <div class="header-location">⚡ Dunedin, Florida</div>
+  </div>
+
+  <div class="ocean-divider"></div>
+<div class="best-day-banner" id="best-day-banner">
+    <div class="best-day-inner">
+      <div class="best-day-label">⚡ BEST DAY TO FISH THIS WEEK</div>
+      <div class="best-day-result" id="best-day-result">Calculating...</div>
+      <div class="best-day-reason" id="best-day-reason"></div>
+    </div>
+  </div>
+  <div class="dashboard">
+
+    <div class="card" id="tide-card">
+      <h2>🌊 Today's Tides</h2>
+      <div id="tide-data">Loading tides...</div>
+    </div>
+<div class="card" id="sun-card">
+      <h2>🌅 Sunrise & Sunset</h2>
+      <div id="sun-data">Loading sun times...</div>
+    </div>
+    <div class="card" id="moon-card">
+      <h2>🌕 Moon Phase</h2>
+      <div id="moon-data">Loading moon phase...</div>
+    </div>
+<div class="card" id="temp-card">
+      <h2>🌡️ Gulf Water Conditions</h2>
+      <div id="temp-data">Loading conditions...</div>
+    </div>
+    <div class="card" id="solunar-card">
+      <h2>🐟 Fish Activity Today</h2>
+      <div id="solunar-data">Calculating...</div>
+    </div>
+<div class="card" id="weather-card">
+      <h2>🌤️ 5-Day Forecast — Tarpon Springs</h2>
+      <div id="weather-data">Loading forecast...</div>
+    </div>
+    <div class="card" id="fish-card">
+      <h2>🐠 What's Biting Near Tarpon Springs</h2>
+      <div id="fish-data"></div>
+    </div>
+
+  </div>
+  <div class="migration-section">
+    <h2>🐟 FISH MIGRATION TRACKER</h2>
+    <p class="map-tip">💡 Live fish movement predictions based on real Gulf water temperatures right now!</p>
+    <div id="migration-data">Loading migration data...</div>
+  </div>
+  <div class="baitshop-section">
+    <h2>🦐 BAIT SHOP FINDER</h2>
+    <p class="map-tip">💡 Find bait shops anywhere in Florida — search by city or zip code!</p>
+    <div class="baitshop-search">
+      <input type="text" id="baitshop-input" placeholder="Enter city or zip code (e.g. Dunedin, 34698)..." />
+      <button id="baitshop-gps">📍 Use My Location</button>
+      <button id="baitshop-search">🔍 Find Bait Shops</button>
+    </div>
+    <div id="baitshop-results"></div>
+  </div>
+<div class="bait-section">
+    <h2>🎣 AI BAIT RECOMMENDER</h2>
+    <p class="map-tip">💡 Hit the button and get instant bait & rig recommendations based on today's live conditions!</p>
+    <div class="bait-targets">
+      <button class="target-btn active" data-target="grouper">🐟 Grouper</button>
+      <button class="target-btn" data-target="snook">🎣 Snook</button>
+      <button class="target-btn" data-target="redfish">🐡 Redfish</button>
+      <button class="target-btn" data-target="snapper">🐠 Snapper</button>
+      <button class="target-btn" data-target="flounder">🦈 Flounder</button>
+    </div>
+    <button id="bait-btn">⚡ Get Bait Recommendation</button>
+    <div id="bait-result"></div>
+  </div>
+<div class="map-section">
+    <div class="section-header">
+      <h2>🗺️ NAUTICAL CHART</h2>
+    </div>
+    <p class="map-tip">💡 Tap anywhere on the water to save a fishing spot. Look for depth changes and hard bottom for grouper!</p>
+    <div id="map"></div>
+    <div id="saved-spots">
+      <h3>📍 Your Saved Spots</h3>
+      <ul id="spots-list"></ul>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
