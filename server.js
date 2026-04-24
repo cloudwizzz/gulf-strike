@@ -160,6 +160,12 @@ app.get('/api/migration', async (req, res) => {
           movement: avgTemp < 65 ? 'Moving offshore to deeper reefs 40-80ft.' : avgTemp < 75 ? 'Nearshore structure & docks. Very active!' : 'Scattered inshore and nearshore. Night bite excellent.',
           direction: avgTemp < 65 ? 'offshore' : 'inshore',
           hotZone: avgTemp < 65 ? 'Nearshore reefs 40-80ft' : 'Docks, bridges & structure'
+        },
+        {
+          species: 'Tarpon', emoji: '🏆',
+          movement: avgTemp < 68 ? '❄️ Too cold — tarpon moved south or offshore. Wait for warmer water.' : avgTemp < 74 ? 'Tarpon beginning to show in passes and nearshore. Early season!' : avgTemp < 85 ? '🔥 Prime tarpon season! Active in passes, bridges and nearshore. Live crabs and mullet!' : 'Tarpon scattered — early morning and late evening bite. Beat the heat!',
+          direction: avgTemp < 68 ? 'south/offshore' : 'inshore passes',
+          hotZone: avgTemp < 68 ? 'Too cold for tarpon' : 'Passes, bridges & nearshore'
         }
       ]
     };

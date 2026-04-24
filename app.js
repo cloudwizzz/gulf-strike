@@ -877,6 +877,126 @@ function initBaitShopFinder() {
     );
   });
 }
+// ─── AI LURE SELECTOR ────────────────────────────────────
+function initLureSelector() {
+  let selectedTarget = 'grouper';
+  let selectedClarity = 'clear';
+
+  // Target buttons
+  document.querySelectorAll('.lure-target-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.lure-target-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedTarget = btn.dataset.target;
+    });
+  });
+
+  // Clarity buttons
+  document.querySelectorAll('.clarity-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.clarity-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedClarity = btn.dataset.clarity;
+    });
+  });
+
+  document.getElementById('lure-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('lure-btn');
+    const result = document.getElementById('lure-result');
+
+    btn.disabled = true;
+    btn.textContent = '🎨 Analyzing conditions...';
+    result.style.display = 'none';
+
+    try {
+      const prompt = `You are an expert Florida fishing lure specialist. Based on these exact conditions, recommend the perfect lure.
+
+Conditions:
+- Target Species: ${selectedTarget.toUpperCase()}
+- Water Clarity: ${selectedClarity}
+- Water Temperature: ${currentConditions.waterTemp || 'unknown'}°F
+- Wind Speed: ${currentConditions.windSpeed || 'unknown'} mph
+- Time of Day: ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+- Moon Phase: ${currentConditions.moonPhase || 'unknown'}
+- Location: Florida Gulf Coast
+
+Respond ONLY with valid JSON, no markdown, no backticks:
+{
+  "primaryColor": "Chartreuse",
+  "colorHex": "#7fff00",
+  "secondaryColor": "White belly",
+  "colorWhy": "Why this color works in these conditions",
+  "lureType": "Specific lure type name",
+  "lureSize": "Specific size recommendation",
+  "retrieveSpeed": "Slow/Medium/Fast",
+  "retrieveTechnique": "Specific technique description",
+  "topPick": "Specific lure brand and model name",
+  "alternatePick": "Alternative lure brand and model",
+  "depth": "Target depth to fish this lure",
+  "science": "2-3 sentences explaining the science behind why this lure works in these exact conditions"
+}`;
+
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: prompt, conditions: currentConditions, raw: true })
+      });
+
+      const data = await res.json();
+      const clean = data.reply.replace(/```json|```/g, '').trim();
+      const rec = JSON.parse(clean);
+
+      result.style.display = 'block';
+      result.innerHTML = `
+        <div style="font-size:0.75rem;letter-spacing:3px;color:#a78bfa;text-transform:uppercase;margin-bottom:4px">🎨 Lure Recommendation for ${selectedTarget.toUpperCase()}</div>
+        <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px">Based on ${selectedClarity} water · Current conditions</div>
+        <div class="lure-color-swatch">
+          <div class="color-dot" style="background:${rec.colorHex}"></div>
+          <div class="lure-color-info">
+            <div class="lure-color-name">${rec.primaryColor}</div>
+            <div class="lure-color-why">${rec.colorWhy}</div>
+          </div>
+        </div>
+        <div class="lure-grid">
+          <div class="lure-card">
+            <div class="lure-card-label">🎣 Lure Type</div>
+            <div class="lure-card-value">${rec.lureType}</div>
+          </div>
+          <div class="lure-card">
+            <div class="lure-card-label">📏 Size</div>
+            <div class="lure-card-value">${rec.lureSize}</div>
+          </div>
+          <div class="lure-card">
+            <div class="lure-card-label">⚡ Retrieve</div>
+            <div class="lure-card-value">${rec.retrieveSpeed} — ${rec.retrieveTechnique}</div>
+          </div>
+          <div class="lure-card">
+            <div class="lure-card-label">📍 Target Depth</div>
+            <div class="lure-card-value">${rec.depth}</div>
+          </div>
+          <div class="lure-card">
+            <div class="lure-card-label">🏆 Top Pick</div>
+            <div class="lure-card-value">${rec.topPick}</div>
+          </div>
+          <div class="lure-card">
+            <div class="lure-card-label">🔄 Alternative</div>
+            <div class="lure-card-value">${rec.alternatePick}</div>
+          </div>
+        </div>
+        <div class="lure-science">
+          🔬 <strong>The Science:</strong> ${rec.science}
+        </div>
+      `;
+
+    } catch(e) {
+      result.style.display = 'block';
+      result.innerHTML = '<p style="color:#ff8a65">Could not get recommendation. Try again!</p>';
+    }
+
+    btn.disabled = false;
+    btn.textContent = '🎨 Get Lure Recommendation';
+  });
+}
 // ─── AI BAIT RECOMMENDER ─────────────────────────────────
 let selectedTarget = 'grouper';
 
@@ -1054,4 +1174,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initCatchIdentifier();
   initCatchLogger();
   initFishingReport();
+  initLureSelector();
 });
