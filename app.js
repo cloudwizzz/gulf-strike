@@ -386,6 +386,117 @@ function initMap() {
 
   renderSpots();
 }
+// ─── DAILY FISHING REPORT ────────────────────────────────
+function initFishingReport() {
+  const btn = document.getElementById('report-btn');
+  const content = document.getElementById('report-content');
+  const dateEl = document.getElementById('report-date');
+
+  const now = new Date();
+  dateEl.textContent = now.toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+  });
+
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    btn.textContent = '⚡ Generating report...';
+    content.style.display = 'none';
+
+    try {
+      const prompt = `You are an expert fishing guide for the Florida Gulf Coast. Generate a detailed daily fishing report based on these current conditions:
+
+- Water Temperature: ${currentConditions.waterTemp || 'unknown'}°F
+- Air Temperature: ${currentConditions.airTemp || 'unknown'}°F
+- Wind Speed: ${currentConditions.windSpeed || 'unknown'} mph
+- Wave Height: ${currentConditions.waveHeight || 'unknown'} ft
+- Moon Phase: ${currentConditions.moonPhase || 'unknown'}
+- Location: Tarpon Springs / Dunedin, Florida Gulf Coast
+- Date: ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+
+Respond ONLY with a valid JSON object, no markdown, no backticks:
+{
+  "score": 8,
+  "scoreLabel": "Excellent Fishing Day",
+  "scoreSummary": "2-3 sentence summary of today's conditions and why it's good or bad for fishing",
+  "bestTimes": "Specific time windows to fish today",
+  "topBait": "Best bait to use today and why",
+  "whereToGo": "Inshore or offshore recommendation with specific areas",
+  "species": [
+    {"name": "Gag Grouper", "emoji": "🐟", "outlook": "Hot bite expected on nearshore ledges"},
+    {"name": "Snook", "emoji": "🎣", "outlook": "Active around mangrove edges at dawn"},
+    {"name": "Redfish", "emoji": "🐡", "outlook": "Good on shallow flats this morning"}
+  ],
+  "proTip": "One specific local pro tip for today's exact conditions",
+  "avoidance": "What to avoid today and why"
+}`;
+
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: prompt, conditions: currentConditions, raw: true })
+      });
+
+      const data = await res.json();
+      const clean = data.reply.replace(/```json|```/g, '').trim();
+      const report = JSON.parse(clean);
+
+      const scorePct = (report.score / 10) * 100;
+
+      content.style.display = 'block';
+      content.innerHTML = `
+        <div class="report-score">
+          <div class="report-score-circle" style="--pct:${scorePct}%">
+            <div class="report-score-number">${report.score}/10</div>
+          </div>
+          <div class="report-score-info">
+            <div class="report-score-title">${report.scoreLabel}</div>
+            <div class="report-score-sub">${report.scoreSummary}</div>
+          </div>
+        </div>
+        <div class="report-grid">
+          <div class="report-card">
+            <div class="report-card-label">⏰ Best Times</div>
+            <div class="report-card-value">${report.bestTimes}</div>
+          </div>
+          <div class="report-card">
+            <div class="report-card-label">🎣 Top Bait Today</div>
+            <div class="report-card-value">${report.topBait}</div>
+          </div>
+          <div class="report-card">
+            <div class="report-card-label">📍 Where to Go</div>
+            <div class="report-card-value">${report.whereToGo}</div>
+          </div>
+          <div class="report-card">
+            <div class="report-card-label">⚠️ What to Avoid</div>
+            <div class="report-card-value">${report.avoidance}</div>
+          </div>
+        </div>
+        <div class="report-species">
+          <div class="report-species-title">🐟 Species Outlook Today</div>
+          ${report.species.map(s => `
+            <div class="report-species-item">
+              <span style="font-size:1.4rem">${s.emoji}</span>
+              <div>
+                <strong style="color:#fff">${s.name}</strong>
+                <div style="color:var(--text-muted);font-size:0.82rem">${s.outlook}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="report-tip">
+          ⚡ <strong>Pro Tip:</strong> ${report.proTip}
+        </div>
+      `;
+
+    } catch(e) {
+      content.style.display = 'block';
+      content.innerHTML = '<p style="color:#ff8a65">Could not generate report. Try again!</p>';
+    }
+
+    btn.disabled = false;
+    btn.textContent = '⚡ Generate Today\'s Report';
+  });
+}
 // ─── CATCH LOGGER ────────────────────────────────────────
 function initCatchLogger() {
   let catches = JSON.parse(localStorage.getItem('gulfStrikeCatches') || '[]');
@@ -942,4 +1053,5 @@ document.addEventListener('DOMContentLoaded', () => {
   loadMigrationData();
   initCatchIdentifier();
   initCatchLogger();
+  initFishingReport();
 });

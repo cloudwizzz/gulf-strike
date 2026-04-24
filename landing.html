@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gulf Strike — AI-Powered Fishing App</title>
+  <link rel="icon" type="image/svg+xml" href="logo.svg"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #020d1a;
+      color: #e8f4f8;
+      overflow-x: hidden;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 40px;
+      background: rgba(2,13,26,0.9);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0,180,216,0.1);
+    }
+
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 4px;
+      background: linear-gradient(135deg, #fff, #90e0ef, #f4a620);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-btn {
+      background: linear-gradient(135deg, #00b4d8, #0077b6);
+      border: none;
+      border-radius: 10px;
+      padding: 10px 24px;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .nav-btn:hover { opacity: 0.85; }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 100px 24px 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background:
+        radial-gradient(ellipse at 20% 30%, rgba(0,180,216,0.12) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(244,166,32,0.08) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,180,216,0.1);
+      border: 1px solid rgba(0,180,216,0.3);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 0.82rem;
+      color: #90e0ef;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 10vw, 7rem);
+      letter-spacing: 6px;
+      line-height: 1;
+      background: linear-gradient(135deg, #fff 0%, #90e0ef 50%, #f4a620 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 3vw, 1.4rem);
+      color: #7eb8d4;
+      max-width: 600px;
+      line-height: 1.6;
+      margin-bottom: 40px;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 60px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #00b4d8, #0077b6);
+      border: none;
+      border-radius: 14px;
+      padding: 18px 40px;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.1s;
+      box-shadow: 0 8px 30px rgba(0,180,216,0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-2px); }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid rgba(0,180,216,0.4);
+      border-radius: 14px;
+      padding: 18px 40px;
+      color: #90e0ef;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      text-decoration: none;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(0,180,216,0.1);
+      transform: translateY(-2px);
+    }
+
+    /* ─── STATS BAR ─── */
+    .stats-bar {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 30px 24px;
+      border-top: 1px solid rgba(0,180,216,0.1);
+      border-bottom: 1px solid rgba(0,180,216,0.1);
+      background: rgba(0,180,216,0.03);
+    }
+
+    .stat-item { text-align: center; }
+
+    .stat-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      letter-spacing: 2px;
+      color: #00b4d8;
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: #7eb8d4;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ─── FEATURES ─── */
+    .features {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 24px;
+    }
+
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      letter-spacing: 4px;
+      text-align: center;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    .section-sub {
+      text-align: center;
+      color: #7eb8d4;
+      font-size: 1rem;
+      margin-bottom: 50px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: rgba(4,22,40,0.8);
+      border: 1px solid rgba(0,180,216,0.15);
+      border-radius: 20px;
+      padding: 28px;
+      backdrop-filter: blur(20px);
+      transition: transform 0.2s, border-color 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #00b4d8, transparent);
+      opacity: 0.5;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(0,180,216,0.3);
+    }
+
+    .feature-icon { font-size: 2.5rem; margin-bottom: 14px; }
+
+    .feature-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .feature-desc {
+      font-size: 0.88rem;
+      color: #7eb8d4;
+      line-height: 1.6;
+    }
+
+    /* ─── VS SECTION ─── */
+    .vs-section {
+      background: rgba(0,180,216,0.03);
+      border-top: 1px solid rgba(0,180,216,0.1);
+      border-bottom: 1px solid rgba(0,180,216,0.1);
+      padding: 80px 24px;
+    }
+
+    .vs-grid {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+
+    .vs-card {
+      background: rgba(4,22,40,0.8);
+      border-radius: 20px;
+      padding: 28px;
+      border: 1px solid rgba(0,180,216,0.15);
+    }
+
+    .vs-card.gulf {
+      border-color: rgba(0,180,216,0.4);
+      background: rgba(0,180,216,0.05);
+    }
+
+    .vs-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 3px;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+
+    .vs-card.gulf .vs-title { color: #00b4d8; }
+
+    .vs-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.88rem;
+    }
+
+    .vs-item:last-child { border-bottom: none; }
+    .vs-check { color: #00e676; font-size: 1rem; }
+    .vs-cross { color: #ff5252; font-size: 1rem; }
+
+    /* ─── CTA ─── */
+    .cta {
+      text-align: center;
+      padding: 80px 24px;
+      position: relative;
+    }
+
+    .cta::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(ellipse at 50% 50%, rgba(0,180,216,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2rem, 6vw, 4rem);
+      letter-spacing: 4px;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+
+    .cta p {
+      color: #7eb8d4;
+      font-size: 1.1rem;
+      margin-bottom: 40px;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      text-align: center;
+      padding: 30px 24px;
+      border-top: 1px solid rgba(0,180,216,0.1);
+      color: #4a7a8a;
+      font-size: 0.82rem;
+    }
+
+    footer a { color: #00b4d8; text-decoration: none; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 600px) {
+      nav { padding: 14px 20px; }
+      .vs-grid { grid-template-columns: 1fr; }
+      .hero-btns { flex-direction: column; align-items: center; }
+      .stats-bar { gap: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">⚡ GULF STRIKE</div>
+    <a href="index.html" class="nav-btn">🎣 Launch App</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">⚡ Florida's Most Advanced Fishing App</div>
+    <h1>FISH SMARTER.<br>CATCH MORE.</h1>
+    <p class="hero-sub">Gulf Strike combines real-time NOAA data, AI-powered advice, and live conditions to give you the ultimate fishing advantage — right from your phone.</p>
+    <div class="hero-btns">
+      <a href="index.html" class="btn-primary">🎣 Launch Gulf Strike</a>
+      <a href="#features" class="btn-secondary">✨ See Features</a>
+    </div>
+    <img src="logo.svg" alt="Gulf Strike" style="width:200px;opacity:0.15;position:absolute;bottom:-40px;right:-40px;"/>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-number">15+</div>
+      <div class="stat-label">Features</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">100%</div>
+      <div class="stat-label">Free to Use</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">Live</div>
+      <div class="stat-label">NOAA Data</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">AI</div>
+      <div class="stat-label">Powered</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">24/7</div>
+      <div class="stat-label">Available</div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <h2 class="section-title">EVERYTHING YOU NEED</h2>
+    <p class="section-sub">Built for Florida anglers who want every advantage on the water</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📸</div>
+        <div class="feature-title">AI Catch Identifier</div>
+        <div class="feature-desc">Snap a photo of your catch — AI instantly identifies the species, estimates size and weight, checks Florida regulations, and tells you how to cook it.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎣</div>
+        <div class="feature-title">AI Bait Recommender</div>
+        <div class="feature-desc">Get exact bait and rig recommendations based on your live water temp, tides, moon phase and wind — personalized for your target species right now.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌊</div>
+        <div class="feature-title">Live Tide Data</div>
+        <div class="feature-desc">Real-time NOAA tide predictions for your area. Know exactly when high and low tides hit so you can plan the perfect fishing window.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌡️</div>
+        <div class="feature-title">Gulf Water Conditions</div>
+        <div class="feature-desc">Live water temperature, air temp, wind speed and wave height pulled directly from NOAA buoys — the same data the pros use.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🐟</div>
+        <div class="feature-title">Fish Migration Tracker</div>
+        <div class="feature-desc">See where grouper, snook, redfish and snapper are moving right now based on live water temperatures across the Gulf Coast.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🗺️</div>
+        <div class="feature-title">Nautical Charts</div>
+        <div class="feature-desc">Full nautical navigation charts with depth soundings, buoys, wrecks and markers. Switch between NOAA charts, satellite and ocean depth views.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌤️</div>
+        <div class="feature-title">5 Day Fishing Forecast</div>
+        <div class="feature-desc">Five day weather forecast with a fishing score for each day — automatically finds the best day to head out this week.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🦐</div>
+        <div class="feature-title">Bait Shop Finder</div>
+        <div class="feature-desc">Find live bait shops anywhere in Florida — search by city or use GPS to find the nearest tackle shops open right now with ratings and directions.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏆</div>
+        <div class="feature-title">Catch Logger</div>
+        <div class="feature-desc">Log every catch with species, weight, length, bait, location and depth. Track your personal records and lifetime fishing stats.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <div class="feature-title">AI Fishing Assistant</div>
+        <div class="feature-desc">Ask anything — your personal AI fishing guide already knows today's conditions and gives you expert local advice for Florida Gulf Coast waters.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌅</div>
+        <div class="feature-title">Golden Hour Alerts</div>
+        <div class="feature-desc">Know exactly when sunrise and sunset golden hours hit — the best fishing windows of the day — with morning and evening golden hour times.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌕</div>
+        <div class="feature-title">Moon Phase & Solunar</div>
+        <div class="feature-desc">Live moon phase with illumination percentage and a solunar activity score combining moon influence and time of day for peak bite windows.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VS SECTION -->
+  <section class="vs-section">
+    <h2 class="section-title">GULF STRIKE VS THE REST</h2>
+    <p class="section-sub" style="margin-bottom:40px">Why serious Florida anglers choose Gulf Strike</p>
+    <div class="vs-grid">
+      <div class="vs-card gulf">
+        <div class="vs-title">⚡ Gulf Strike</div>
+        <div class="vs-item"><span class="vs-check">✅</span> AI Catch Identifier with photo</div>
+        <div class="vs-item"><span class="vs-check">✅</span> AI Bait Recommender</div>
+        <div class="vs-item"><span class="vs-check">✅</span> Live NOAA water temp</div>
+        <div class="vs-item"><span class="vs-check">✅</span> Fish Migration Tracker</div>
+        <div class="vs-item"><span class="vs-check">✅</span> Nautical charts with depth</div>
+        <div class="vs-item"><span class="vs-check">✅</span> Bait Shop Finder</div>
+        <div class="vs-item"><span class="vs-check">✅</span> AI Fishing Assistant</div>
+        <div class="vs-item"><span class="vs-check">✅</span> 100% Free</div>
+      </div>
+      <div class="vs-card">
+        <div class="vs-title">Other Apps</div>
+        <div class="vs-item"><span class="vs-cross">❌</span> No AI catch identification</div>
+        <div class="vs-item"><span class="vs-cross">❌</span> No AI bait recommendations</div>
+        <div class="vs-item"><span class="vs-cross">❌</span> Limited water data</div>
+        <div class="vs-item"><span class="vs-cross">❌</span> No migration tracking</div>
+        <div class="vs-item"><span class="vs-cross">❌</span> Basic maps only</div>
+        <div class="vs-item"><span class="vs-cross">❌</span> No bait shop finder</div>
+        <div class="vs-item"><span class="vs-cross">❌</span> No AI assistant</div>
+        <div class="vs-item"><span class="vs-cross">❌</span> Paid subscriptions</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <h2>READY TO CATCH MORE?</h2>
+    <p>Join Florida anglers using Gulf Strike to fish smarter every trip.</p>
+    <a href="index.html" class="btn-primary" style="font-size:1.2rem;padding:20px 50px">🎣 Launch Gulf Strike Free</a>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>⚡ Gulf Strike — AI-Powered Fishing Companion · Built for Florida Anglers</p>
+    <p style="margin-top:8px"><a href="index.html">Launch App</a></p>
+  </footer>
+
+</body>
+</html>
